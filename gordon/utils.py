@@ -432,6 +432,32 @@ def delete_cf_stack(name, dry_run=True):
         )
 
 
+def walk_dir(top, onerror=None, followlinks=True):
+    """Wrapper for os.walk() that safely follows symlinks, keeping track of
+    the directories it has already visited."""
+    dirs = set()
+
+    # Add the starting directory to visited directories
+    for dirpath, dirnames, filenames in os.walk(top=top, topdown=True,
+                                                onerror=onerror,
+                                                followlinks=followlinks):
+        top_dir = os.path.realpath(dirpath)
+        dirs.add(top_dir)
+        break
+
+    for dirpath, dirnames, filenames in os.walk(top=top, topdown=True,
+                                                onerror=onerror,
+                                                followlinks=followlinks):
+        scandirs = []
+        for dirname in dirnames:
+            dirkey = os.path.realpath(os.path.join(dirpath, dirname))
+            if dirkey not in dirs:
+                dirs.add(dirkey)
+                scandirs.append(dirname)
+        dirnames[:] = scandirs
+        yield dirpath, dirnames, filenames
+
+
 class BaseLambdaAWSCustomObject(cloudformation.AWSCustomObject):
     """Base troposphere Custom Resource implemented using a lambda function
     called ``cf_lambda_name``."""

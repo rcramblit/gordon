@@ -467,7 +467,7 @@ class Lambda(base.BaseResource):
 
         with tempfile.SpooledTemporaryFile(0, 'wb') as tmp:
             with zipfile.ZipFile(tmp, 'w', zipfile.ZIP_DEFLATED) as zf:
-                for basedir, dirs, files in os.walk(destination):
+                for basedir, dirs, files in utils.walk_dir(destination, followlinks=True):
                     relative = os.path.relpath(basedir, destination)
                     for filename in files:
                         source = os.path.join(destination, basedir, filename)
